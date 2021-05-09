@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from flask import Flask, render_template, session, request, redirect, url_for
 from models import User, db
@@ -6,7 +7,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def main():
-    if session is not False :
+    if 'userid' in session:
         userid = session['userid']
         return render_template('home.html',userid=userid)
     else:
@@ -14,6 +15,9 @@ def main():
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
+    if 'userid' in session:
+        return redirect('/')
+    else:
         if request.method == 'GET':
             return render_template('login.html')
         else:
@@ -22,16 +26,16 @@ def login():
 
             if not userid:
                 msg = "아이디 없음"
-                return msg
+                return render_template('login.html' ,msg = msg)
             elif not password:
                 msg = "비밀번호 틀림"
-                return msg
+                return render_template('login.html' ,msg = msg)
             session['userid'] = request.form.get('userid')
             return redirect('/')
 
 @app.route('/logout', methods = ['GET'])
 def logout():    
-    session['userid'] = False
+    session.pop('userid', None)
     return redirect('/')
 
 @app.route('/register', methods = ['GET', 'POST'])
@@ -46,10 +50,10 @@ def register():
 
         if not (userid and password and username and repass):
             msg = "모두 입력하여주세요."
-            return msg
+            return render_template('register.html', msg = msg)
         if password != repass:
             msg = "비밀번호가 다릅니다."
-            return msg
+            return render_template('register.html', msg = msg)
         user = User()
         user.userid = userid
         user.username = username
